@@ -1,0 +1,112 @@
+import requests
+import webbrowser
+import re
+import pymysql
+from bs4 import BeautifulSoup
+import time
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  ' Chrome/73.0.3683.103 Safari/537.36',
+    'Accept': '*/*',
+    'Connection': 'close',
+    }
+
+# 声明并调用浏览器
+
+chromePath = r'C:\Users\Administrator\AppData\Local\Google\Chrome\Application\chrome.exe'
+webbrowser.register('chrome', None, webbrowser.BackgroundBrowser(chromePath))
+
+# 连接数据库获取将要自动登录的网页
+db = pymysql.connect("localhost", "root", "root", "ffy")
+cursor = db.cursor()
+cursor.execute("SELECT website,account,password from sheet1")
+cursor.scroll(2719, mode='absolute')
+cursor.scroll(1, mode='relative')
+row = cursor.fetchmany(20)
+# print(cursor.lastrowid)
+
+
+# def open_page(flag, real_url, real_acc, real_pw):
+#     if flag == 0:
+#         webbrowser.get('chrome').open(real_url, new=1, autoraise=True)
+#         print(real_url, real_acc, real_pw)
+#     else:
+#         print('没登录框啊')
+
+
+def check_login(url):
+    requests.get(url, headers=headers, timeout=20, verify=False)
+    website_data = requests.get(url).text
+    soup = BeautifulSoup(website_data, "html.parser")
+    flag = soup.find_all(id='user_login')
+    print(flag)
+    if flag == []:
+        return 1
+    else:
+        return 0
+
+# 循环遇到错误 无视 继续运行
+
+
+def get_form_value(real_url):
+    wbdata = requests.get(real_url)
+    soup = BeautifulSoup(wbdata.content, "html.parser")
+    submittag = soup.find(id='wp-submit')
+    return submittag
+
+
+#
+# # 获取value值
+
+# def login():
+
+
+for s in row:
+    try:
+        is_flag = check_login(s[0])
+        if is_flag == 1:
+            continue
+        # open_page(is_flag, s[0], s[1], s[2])
+        fv = get_form_value(s[0])
+        fv1 = fv['value']
+        print(fv1)
+        first_page = s[0].replace("login.php", "admin/")
+        data = {
+            'log': row[1],
+            'pwd': row[2],
+            'redirect_to': first_page,
+            'testcookie': '1',
+            'wp-submit': fv1
+        }
+        session = requests.Session()
+        session.post(s[0], headers=headers, data=data, verify=False)
+        response = session.get(first_page, headers=headers)
+        print(response.text)
+    except requests.exceptions.ProxyError:
+        continue
+    except requests.exceptions.ReadTimeout:
+        continue
+    except requests.exceptions.ConnectionError:
+        continue
+
+
+# 登录后，我们需要获取另一个网页中的内容
+
+#
+#
+# def input_content():
+#     wbdata = requests.get(url).text
+#     soup = BeautifulSoup(wbdata, "html.parser")
+#     textarea = soup.find_all('textarea', id=re.compile('content'))
+#     return textarea
+# # 获取内容和题目的输入框  并将数据库的数据传给他们
+#
+#
+# # text = input_content()
+# # print(text)
+#
+#
+# # print(response.text)
+#     cursor.close()
+#     db.close()
