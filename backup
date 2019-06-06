@@ -1,0 +1,112 @@
+
+
+
+
+import requests
+import webbrowser
+import re
+import pymysql
+from bs4 import BeautifulSoup
+
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  ' Chrome/73.0.3683.103 Safari/537.36',
+    'Accept': '*/*',
+    'Connection': 'close',
+    }
+
+# 声明并调用浏览器
+
+chromePath = r'C:\Users\Administrator\AppData\Local\Google\Chrome\Application\chrome.exe'
+webbrowser.register('chrome', None, webbrowser.BackgroundBrowser(chromePath))
+
+# 连接数据库获取将要自动登录的网页
+db = pymysql.connect("localhost", "root", "root", "ffy")
+cursor = db.cursor()
+cursor.execute("SELECT website,account,password from sheet1")
+cursor.scroll(2159, mode='absolute')
+cursor.scroll(1, mode='relative')
+row = cursor.fetchmany(20)
+# print(cursor.lastrowid)
+
+# firstPage = row[0].replace("login.php", "admin/post-new.php")
+# url = row[0]
+# # 打开页面为了加载value的值
+# session = requests.Session()
+# session.post(url, headers=headers, verify=False)
+
+
+def check_url(fake_url):
+    rs = requests.get(fake_url, headers=headers, timeout=20, verify=False)
+    if rs.url == fake_url:
+        return 0
+    else:
+        return 1
+
+# # 检查url是否为管理员页面 是则调用浏览器打开否则跳过 查询下一条记录
+
+
+def open_page(flag, real_url, real_acc, real_pw):
+    if flag == 0:
+        webbrowser.get('chrome').open(real_url, new=1, autoraise=True)
+        print(real_url, real_acc, real_pw)
+    else:
+        return 0
+
+
+# 循环遇到错误 无视 继续运行
+for s in row:
+    try:
+        is_flag = check_url(s[0])
+        open_page(is_flag, s[0], s[1], s[2])
+    except requests.exceptions.ProxyError:
+        continue
+    except requests.exceptions.ReadTimeout:
+        continue
+    except requests.exceptions.ConnectionError:
+        continue
+
+# def get_form_value():
+#     wbdata = requests.get(url).text
+#     soup = BeautifulSoup(wbdata, "html.parser")
+#     submittag = soup.find_all(id='wp-submit')
+#     return submittag[0]
+#
+# # 获取value值
+#
+#
+# fv = get_form_value()
+# fv1 = fv['value']
+#
+# data = {
+#     'log': row[1],
+#     'pwd': row[2],
+#     'redirect_to': firstPage,
+#     'testcookie': '1',
+#     'wp-submit': fv1
+# }
+#
+#
+# session = requests.Session()
+# session.post(url, headers=headers, data=data, verify=False)
+# # 登录后，我们需要获取另一个网页中的内容
+#
+# response = session.get(firstPage, headers=headers)
+#
+#
+# def input_content():
+#     wbdata = requests.get(url).text
+#     soup = BeautifulSoup(wbdata, "html.parser")
+#     textarea = soup.find_all('textarea', id=re.compile('content'))
+#     return textarea
+# # 获取内容和题目的输入框  并将数据库的数据传给他们
+#
+#
+# # text = input_content()
+# # print(text)
+#
+#
+# # print(response.text)
+#     cursor.close()
+#     db.close()
