@@ -1,0 +1,81 @@
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
+from threading import Timer
+import requests
+import webbrowser
+import time
+import re
+
+from bs4 import BeautifulSoup
+from selenium import webdriver
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  ' Chrome/73.0.3683.103 Safari/537.36',
+    'Accept': '*/*',
+    'Connection': 'keep-alive',
+    }
+
+# 声明并调用浏览器 并打开一个页面
+
+# 连接数据库获取将要自动登录的网页
+
+# print(cursor.lastrowid)
+
+
+def check_url(self, url):
+    self.browser.get(url)
+    if self.browser.current_url != url:
+        self.browser.execute_script('window.close()')
+        print('非登录页面')
+    else:
+        return 0
+
+
+def input_str(self, real_url, acc, pwd):
+    self.browser.get(real_url)
+    time.sleep(2)
+    flag = self.browser.find_element_by_id('user_login')
+    print(flag)
+    if flag is None:
+        print('查找登录框失败')
+        self.browser.execute_script("window.close()")
+    else:
+        self.browser.find_element_by_id('user_login').send_keys(acc)
+        self.browser.find_element_by_id('user_pass').send_keys(pwd)
+        self.browser.find_element_by_id('wp-submit').click()
+        print('登录成功')
+        return 0
+
+
+def open_new_window(self):
+    new_window = "window.open('about:blank')"
+    self.browser.execute_script(new_window)
+    all_handles = self.browser.window_handles
+    for new_handle in all_handles:
+        if new_handle != self.current_handle:
+            self.browser.switch_to.window(new_handle)
+
+# 添加登录后是否能够进入postnew函数
+
+
+def check_main_menu(self):
+    # flag = self.browser.find_element_by_name('wp-menu-name')
+    if self.browser.current_url != 'https://www.computervn.com/wp-admin/':
+        print(self.browser.current_url)
+        return 1
+    else:
+        return 0
+
+    # except requests.exceptions.ProxyError:
+    #     print('proxy error')
+    #     continue
+    # except requests.exceptions.ReadTimeout:
+    #     print('ReadTimeout error')
+    #     continue
+    # except requests.exceptions.ConnectionError:
+    #     print('Connection error')
+    #     continue
+    # except requests.exceptions.TooManyRedirects:
+    #     print('TooManyRedirects error')
+    #     continue
